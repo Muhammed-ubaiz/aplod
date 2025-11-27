@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Categories & Products</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Montserrat", sans-serif; background: #f8f9fa; }
+    .dashboard-wrapper { display: flex; min-height: 100vh; }
+    .sidebar { width: 250px; background: linear-gradient(135deg, #253169 0%, #1a1f3a 100%); color: white; padding: 30px 20px; position: fixed; height: 100vh; overflow-y: auto; left: 0; top: 0; z-index: 1000; }
+    .logo { display: flex; flex-direction: column; align-items: center; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+    .logo i { font-size: 2.5rem; margin-bottom: 10px; }
+    .logo p { font-size: 1.1rem; font-weight: bold; }
+    .nav-link { color: rgba(255,255,255,0.8); text-decoration: none; padding: 12px 15px; border-radius: 8px; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; cursor: pointer; }
+    .nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+    .nav-link.active { background: rgba(255,255,255,0.25); color: white; font-weight: 600; }
+    .main-content { margin-left: 250px; padding: 30px; flex: 1; background: #f8f9fa; }
+    .section { display: none; }
+    .section.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .stat-card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; transition: all 0.3s ease; }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+    .stat-value { font-size: 2.5rem; font-weight: 700; color: #253169; }
+    .btn-primary { background: linear-gradient(135deg, #253169 0%, #1a1f3a 100%); border: none; }
+    .btn-primary:hover { background: linear-gradient(135deg, #1f2752 0%, #16182f 100%); }
+    .img-preview { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-top: 10px; }
+    .table-img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; }
+    .loading { text-align: center; padding: 40px; }
+    .spinner-border { color: #253169; width: 3rem; height: 3rem; }
+    .modal-loader { display: none; text-align: center; padding: 20px; }
+    .modal-loader.show { display: block; }
+    .modal-form { display: block; }
+    .modal-form.hide { display: none; }
+    .success-toast { position: fixed; top: 20px; right: 20px; z-index: 2000; min-width: 300px; animation: slideIn 0.3s ease; }
+    @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @media (max-width: 768px) { 
+      .sidebar { width: 200px; } 
+      .main-content { margin-left: 200px; padding: 20px; } 
+      .success-toast { right: 10px; left: 10px; min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard-wrapper">
+    <div class="sidebar">
+      <div class="logo">
+        <i class="fas fa-layer-group"></i>
+        <p>Admin Panel</p>
+      </div>
+      <nav class="nav">
+        <a class="nav-link active" onclick="showSection('dashboard', event)"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a class="nav-link" onclick="showSection('categories', event)"><i class="fas fa-list"></i> Categories</a>
+        <a class="nav-link" onclick="showSection('products', event)"><i class="fas fa-box"></i> Products</a>
+        <a class="nav-link" onclick="showSection('bestsellers', event)"><i class="fas fa-star"></i> Best Sellers</a>
+        <a class="nav-link" onclick="showSection('testimonials', event)"><i class="fas fa-quote-left"></i> Testimonials</a>
+      </nav>
+    </div>
+
+    <div class="main-content">
+
+      <!-- Dashboard -->
+      <div id="dashboard" class="section active">
+        <h1 class="mb-4">Dashboard</h1>
+        <div class="row">
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="stat-card">
+              <div class="stat-value" id="totalCategories">0</div>
+              <div class="stat-label">Total Categories</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="stat-card">
+              <div class="stat-value" id="totalProducts">0</div>
+              <div class="stat-label">Total Products</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="stat-card">
+              <div class="stat-value" id="totalBestsellers">0</div>
+              <div class="stat-label">Best Sellers</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="stat-card">
+              <div class="stat-value" id="totalTestimonials">0</div>
+              <div class="stat-label">Testimonials</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories -->
+      <div id="categories" class="section">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1>Manage Categories</h1>
+          <button class="btn btn-primary" onclick="openCategoryModal()">
+            <i class="fas fa-plus"></i> Add Category
+          </button>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <input type="text" class="form-control mb-3" placeholder="Search categories..." id="searchCategories" onkeyup="filterCategories()">
+            <div id="categoriesLoading" class="loading">
+              <div class="spinner-border"></div>
+              <p class="mt-3">Loading categories...</p>
+            </div>
+            <div class="table-responsive" id="categoriesTableWrapper" style="display:none;">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="categoriesTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products -->
+      <div id="products" class="section">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1>Manage Products</h1>
+          <button class="btn btn-primary" onclick="openProductModal()">
+            <i class="fas fa-plus"></i> Add Product
+          </button>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <input type="text" class="form-control mb-3" placeholder="Search products..." id="searchProducts" onkeyup="filterProducts()">
+            <div id="productsLoading" class="loading">
+              <div class="spinner-border"></div>
+              <p class="mt-3">Loading products...</p>
+            </div>
+            <div class="table-responsive" id="productsTableWrapper" style="display:none;">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="productsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Best Sellers -->
+      <div id="bestsellers" class="section">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1>Manage Best Sellers</h1>
+          <button class="btn btn-primary" onclick="openBestSellerModal()">
+            <i class="fas fa-plus"></i> Add Best Seller
+          </button>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <input type="text" class="form-control mb-3" placeholder="Search best sellers..." id="searchBestsellers" onkeyup="filterBestsellers()">
+            <div id="bestsellersLoading" class="loading">
+              <div class="spinner-border"></div>
+              <p class="mt-3">Loading best sellers...</p>
+            </div>
+            <div class="table-responsive" id="bestsellersTableWrapper" style="display:none;">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Price</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="bestsellersTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonials -->
+      <div id="testimonials" class="section">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1>Manage Testimonials</h1>
+          <button class="btn btn-primary" onclick="openTestimonialModal()">
+            <i class="fas fa-plus"></i> Add Testimonial
+          </button>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <input type="text" class="form-control mb-3" placeholder="Search testimonials..." id="searchTestimonials" onkeyup="filterTestimonials()">
+            <div id="testimonialsLoading" class="loading">
+              <div class="spinner-border"></div>
+              <p class="mt-3">Loading testimonials...</p>
+            </div>
+            <div class="table-responsive" id="testimonialsTableWrapper" style="display:none;">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="testimonialsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Category Modal -->
+  <div class="modal fade" id="categoryModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="categoryModalTitle">Add Category</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-loader" id="categoryLoader">
+          <div class="spinner-border"></div>
+          <p class="mt-2">Saving...</p>
+        </div>
+        <form id="categoryForm" class="modal-form" onsubmit="saveCategory(event)">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Name *</label>
+              <input type="text" class="form-control" id="catName" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" id="catDesc" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="catStatus">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Image</label>
+              <input type="file" class="form-control" accept="image/*" id="catImage">
+              <img id="catPreview" class="img-preview" src="" style="display:none;">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Modal -->
+  <div class="modal fade" id="productModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="productModalTitle">Add Product</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-loader" id="productLoader">
+          <div class="spinner-border"></div>
+          <p class="mt-2">Saving...</p>
+        </div>
+        <form id="productForm" class="modal-form" onsubmit="saveProduct(event)">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Name *</label>
+              <input type="text" class="form-control" id="prodName" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Category *</label>
+              <select class="form-select" id="prodCategory" required></select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Price *</label>
+              <input type="number" step="0.01" min="0" class="form-control" id="prodPrice" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Image</label>
+              <input type="file" class="form-control" accept="image/*" id="prodImage">
+              <img id="prodPreview" class="img-preview" src="" style="display:none;">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Best Seller Modal -->
+  <div class="modal fade" id="bestSellerModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="bestSellerModalTitle">Add Best Seller</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-loader" id="bestSellerLoader">
+          <div class="spinner-border"></div>
+          <p class="mt-2">Saving...</p>
+        </div>
+        <form id="bestSellerForm" class="modal-form" onsubmit="saveBestSeller(event)">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Name *</label>
+              <input type="text" class="form-control" id="bsName" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Type *</label>
+              <input type="text" class="form-control" id="bsType" placeholder="e.g. Burger, Pizza, Drink" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Price *</label>
+              <input type="number" step="0.01" min="0" class="form-control" id="bsPrice" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Image</label>
+              <input type="file" class="form-control" accept="image/*" id="bsImage">
+              <img id="bsPreview" class="img-preview" src="" style="display:none;">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Testimonial Modal -->
+  <div class="modal fade" id="testimonialModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="testimonialModalTitle">Add Testimonial</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-loader" id="testimonialLoader">
+          <div class="spinner-border"></div>
+          <p class="mt-2">Saving...</p>
+        </div>
+        <form id="testimonialForm" class="modal-form" onsubmit="saveTestimonial(event)">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Name *</label>
+              <input type="text" class="form-control" id="testimonialName" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description *</label>
+              <textarea class="form-control" id="testimonialDesc" rows="4" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Image</label>
+              <input type="file" class="form-control" accept="image/*" id="testimonialImage">
+              <img id="testimonialPreview" class="img-preview" src="" style="display:none;">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+  import { 
+    getDatabase, ref, onValue, push, update, remove 
+  } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+  import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDfB0pwHCxzPHzeyPa0GvLOS-gQg0CaDA4",
+    authDomain: "packup-4223f.firebaseapp.com",
+    databaseURL: "https://packup-4223f-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "packup-4223f",
+    storageBucket: "packup-4223f.firebasestorage.app",
+    messagingSenderId: "747632150416",
+    appId: "1:747632150416:web:69458ee5ad3ab5b27cd515"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const storage = getStorage(app);
+
+  window.allCategories = [];
+  window.allProducts = [];
+  window.allBestsellers = [];
+  window.allTestimonials = [];
+  window.editingId = null;
+
+  // SUCCESS TOAST
+  window.showSuccessToast = (msg) => {
+    const el = document.createElement('div');
+    el.innerHTML = `<div class="toast success-toast align-items-center border-0 bg-success text-white" role="alert">
+      <div class="d-flex"><div class="toast-body"><i class="fas fa-check-circle me-2"></i>${msg}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`;
+    document.body.appendChild(el);
+    new bootstrap.Toast(el.querySelector('.toast')).show();
+    setTimeout(() => el.remove(), 4000);
+  };
+
+  // UPLOAD IMAGE
+  window.uploadImage = async (file, folder) => {
+    if (!file) return "";
+    const timestamp = Date.now();
+    const rand = Math.random().toString(36).substring(7);
+    const name = `${folder}/${timestamp}_${rand}.${file.name.split('.').pop()}`;
+    const storageRef = sRef(storage, name);
+    await uploadBytes(storageRef, file);
+    return await getDownloadURL(storageRef);
+  };
+
+  // IMAGE PREVIEW FOR ALL MODALS
+  ["catImage","prodImage","bsImage","testimonialImage"].forEach(id => {
+    document.getElementById(id)?.addEventListener("change", e => {
+      if (e.target.files[0]) {
+        const previewId = id === "catImage" ? "catPreview" :
+                         id === "prodImage" ? "prodPreview" :
+                         id === "bsImage" ? "bsPreview" : "testimonialPreview";
+        const preview = document.getElementById(previewId);
+        preview.src = URL.createObjectURL(e.target.files[0]);
+        preview.style.display = "block";
+      }
+    });
+  });
+
+  // FIXED DATA LOADING — THIS IS THE KEY FIX
+  function loadData(path, targetArray, callback) {
+    onValue(ref(db, path), (snapshot) => {
+      const data = snapshot.val();
+      targetArray.length = 0; // clear array safely
+      if (data) {
+        Object.keys(data).forEach(key => {
+          targetArray.push({ id: key, ...data[key] });
+        });
+      }
+      if (callback) callback();
+    });
+  }
+
+  loadData('categories',    window.allCategories,    () => { renderCategories(); updateProductCategorySelect(); updateStats(); });
+  loadData('products',      window.allProducts,      () => { renderProducts(); updateStats(); });
+  loadData('bestsellers',   window.allBestsellers,   () => { renderBestsellers(); updateStats(); });
+  loadData('testimonials',  window.allTestimonials,  () => { renderTestimonials(); updateStats(); });
+
+  // UPDATE PRODUCT CATEGORY DROPDOWN
+  function updateProductCategorySelect() {
+    const select = document.getElementById("prodCategory");
+    if (select) {
+      select.innerHTML = window.allCategories.map(c => 
+        `<option value="${c.id}">${c.name}</option>`
+      ).join('');
+    }
+  }
+
+  // RENDER FUNCTIONS
+  function renderCategories(arr = window.allCategories) {
+    const tbody = document.getElementById("categoriesTable");
+    tbody.innerHTML = arr.length === 0 
+      ? `<tr><td colspan="5" class="text-center py-4 text-muted">No categories found</td></tr>`
+      : arr.map(c => `<tr>
+          <td><img src="${c.imageUrl || 'https://via.placeholder.com/50'}" class="table-img" alt="${c.name}"></td>
+          <td><strong>${c.name}</strong></td>
+          <td>${(c.description || '').substring(0,60)}...</td>
+          <td><span class="badge bg-${c.status==='active'?'success':'secondary'}">${c.status||'inactive'}</span></td>
+          <td>
+            <button class="btn btn-sm btn-warning me-2" onclick="editCategory('${c.id}')"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger" onclick="deleteCategory('${c.id}')"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>`).join('');
+    document.getElementById("categoriesLoading").style.display = "none";
+    document.getElementById("categoriesTableWrapper").style.display = "block";
+  }
+
+  function renderProducts(arr = window.allProducts) {
+    const tbody = document.getElementById("productsTable");
+    tbody.innerHTML = arr.length === 0 
+      ? `<tr><td colspan="5" class="text-center py-4 text-muted">No products found</td></tr>`
+      : arr.map(p => {
+          const catName = window.allCategories.find(c => c.id === p.categoryId)?.name || 'Uncategorized';
+          return `<tr>
+            <td><img src="${p.imageUrl || 'https://via.placeholder.com/50'}" class="table-img" alt="${p.name}"></td>
+            <td><strong>${p.name}</strong></td>
+            <td>${catName}</td>
+            <td>$${Number(p.price||0).toFixed(2)}</td>
+            <td>
+              <button class="btn btn-sm btn-warning me-2" onclick="editProduct('${p.id}')"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-sm btn-danger" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>`;
+        }).join('');
+    document.getElementById("productsLoading").style.display = "none";
+    document.getElementById("productsTableWrapper").style.display = "block";
+  }
+
+  function renderBestsellers(arr = window.allBestsellers) {
+    const tbody = document.getElementById("bestsellersTable");
+    tbody.innerHTML = arr.length === 0 
+      ? `<tr><td colspan="5" class="text-center py-4 text-muted">No best sellers found</td></tr>`
+      : arr.map(i => `<tr>
+          <td><img src="${i.imageUrl || 'https://via.placeholder.com/50'}" class="table-img" alt="${i.name}"></td>
+          <td><strong>${i.name}</strong></td>
+          <td>${i.type || '-'}</td>
+          <td>$${Number(i.price||0).toFixed(2)}</td>
+          <td>
+            <button class="btn btn-sm btn-warning me-2" onclick="editBestSeller('${i.id}')"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger" onclick="deleteBestSeller('${i.id}')"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>`).join('');
+    document.getElementById("bestsellersLoading").style.display = "none";
+    document.getElementById("bestsellersTableWrapper").style.display = "block";
+  }
+
+  function renderTestimonials(arr = window.allTestimonials) {
+    const tbody = document.getElementById("testimonialsTable");
+    tbody.innerHTML = arr.length === 0 
+      ? `<tr><td colspan="4" class="text-center py-4 text-muted">No testimonials found</td></tr>`
+      : arr.map(t => `<tr>
+          <td><img src="${t.imageUrl || 'https://via.placeholder.com/50'}" class="table-img" alt="${t.name}"></td>
+          <td><strong>${t.name}</strong></td>
+          <td>${(t.description||'').substring(0,80)}...</td>
+          <td>
+            <button class="btn btn-sm btn-warning me-2" onclick="editTestimonial('${t.id}')"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger" onclick="deleteTestimonial('${t.id}')"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>`).join('');
+    document.getElementById("testimonialsLoading").style.display = "none";
+    document.getElementById("testimonialsTableWrapper").style.display = "block";
+  }
+
+  function updateStats() {
+    document.getElementById("totalCategories").textContent = window.allCategories.length;
+    document.getElementById("totalProducts").textContent = window.allProducts.length;
+    document.getElementById("totalBestsellers").textContent = window.allBestsellers.length;
+    document.getElementById("totalTestimonials").textContent = window.allTestimonials.length;
+  }
+
+  // OPEN MODALS
+  window.openCategoryModal = () => { window.editingId = null; document.getElementById("categoryForm").reset(); document.getElementById("catPreview").style.display="none"; document.getElementById("categoryModalTitle").textContent="Add Category"; new bootstrap.Modal("#categoryModal").show(); };
+  window.openProductModal = () => { window.editingId = null; document.getElementById("productForm").reset(); document.getElementById("prodPreview").style.display="none"; updateProductCategorySelect(); document.getElementById("productModalTitle").textContent="Add Product"; new bootstrap.Modal("#productModal").show(); };
+  window.openBestSellerModal = () => { window.editingId = null; document.getElementById("bestSellerForm").reset(); document.getElementById("bsPreview").style.display="none"; document.getElementById("bestSellerModalTitle").textContent="Add Best Seller"; new bootstrap.Modal("#bestSellerModal").show(); };
+  window.openTestimonialModal = () => { window.editingId = null; document.getElementById("testimonialForm").reset(); document.getElementById("testimonialPreview").style.display="none"; document.getElementById("testimonialModalTitle").textContent="Add Testimonial"; new bootstrap.Modal("#testimonialModal").show(); };
+
+  // EDIT FUNCTIONS
+  window.editCategory = (id) => {
+    const cat = window.allCategories.find(c => c.id === id);
+    window.editingId = id;
+    document.getElementById("catName").value = cat.name;
+    document.getElementById("catDesc").value = cat.description || '';
+    document.getElementById("catStatus").value = cat.status || 'active';
+    if (cat.imageUrl) { document.getElementById("catPreview").src = cat.imageUrl; document.getElementById("catPreview").style.display = "block"; }
+    document.getElementById("categoryModalTitle").textContent = "Edit Category";
+    new bootstrap.Modal("#categoryModal").show();
+  };
+
+  window.editProduct = (id) => {
+    const p = window.allProducts.find(x => x.id === id);
+    window.editingId = id;
+    document.getElementById("prodName").value = p.name;
+    updateProductCategorySelect();
+    document.getElementById("prodCategory").value = p.categoryId || '';
+    document.getElementById("prodPrice").value = p.price;
+    if (p.imageUrl) { document.getElementById("prodPreview").src = p.imageUrl; document.getElementById("prodPreview").style.display = "block"; }
+    document.getElementById("productModalTitle").textContent = "Edit Product";
+    new bootstrap.Modal("#productModal").show();
+  };
+
+  window.editBestSeller = (id) => {
+    const i = window.allBestsellers.find(x => x.id === id);
+    window.editingId = id;
+    document.getElementById("bsName").value = i.name;
+    document.getElementById("bsType").value = i.type || '';
+    document.getElementById("bsPrice").value = i.price;
+    if (i.imageUrl) { document.getElementById("bsPreview").src = i.imageUrl; document.getElementById("bsPreview").style.display = "block"; }
+    document.getElementById("bestSellerModalTitle").textContent = "Edit Best Seller";
+    new bootstrap.Modal("#bestSellerModal").show();
+  };
+
+  window.editTestimonial = (id) => {
+    const t = window.allTestimonials.find(x => x.id === id);
+    window.editingId = id;
+    document.getElementById("testimonialName").value = t.name;
+    document.getElementById("testimonialDesc").value = t.description || '';
+    if (t.imageUrl) { document.getElementById("testimonialPreview").src = t.imageUrl; document.getElementById("testimonialPreview").style.display = "block"; }
+    document.getElementById("testimonialModalTitle").textContent = "Edit Testimonial";
+    new bootstrap.Modal("#testimonialModal").show();
+  };
+
+  // SAVE FUNCTIONS
+  window.saveCategory = async (e) => { e.preventDefault();
+    const name = document.getElementById("catName").value.trim();
+    const desc = document.getElementById("catDesc").value.trim();
+    const status = document.getElementById("catStatus").value;
+    const file = document.getElementById("catImage").files[0];
+    if (!name) return alert("Name required!");
+    document.getElementById("categoryForm").classList.add("hide");
+    document.getElementById("categoryLoader").classList.add("show");
+    let imageUrl = file ? await uploadImage(file, "categories") : (window.editingId ? window.allCategories.find(c=>c.id===window.editingId)?.imageUrl : "");
+    const data = { name, description: desc, status, imageUrl };
+    try {
+      window.editingId ? await update(ref(db, 'categories/'+window.editingId), data) : await push(ref(db, 'categories'), data);
+      showSuccessToast(window.editingId ? "Category updated!" : "Category added!");
+      bootstrap.Modal.getInstance(document.getElementById("categoryModal")).hide();
+    } catch(err) { alert(err.message); }
+    finally { document.getElementById("categoryForm").classList.remove("hide"); document.getElementById("categoryLoader").classList.remove("show"); }
+  };
+
+  window.saveProduct = async (e) => { e.preventDefault();
+    const name = document.getElementById("prodName").value.trim();
+    const categoryId = document.getElementById("prodCategory").value;
+    const price = parseFloat(document.getElementById("prodPrice").value);
+    const file = document.getElementById("prodImage").files[0];
+    if (!name || !categoryId || !price) return alert("Fill all fields!");
+    document.getElementById("productForm").classList.add("hide");
+    document.getElementById("productLoader").classList.add("show");
+    let imageUrl = file ? await uploadImage(file, "products") : (window.editingId ? window.allProducts.find(p=>p.id===window.editingId)?.imageUrl : "");
+    const data = { name, categoryId, price, imageUrl };
+    try {
+      window.editingId ? await update(ref(db, 'products/'+window.editingId), data) : await push(ref(db, 'products'), data);
+      showSuccessToast(window.editingId ? "Product updated!" : "Product added!");
+      bootstrap.Modal.getInstance(document.getElementById("productModal")).hide();
+    } catch(err) { alert(err.message); }
+    finally { document.getElementById("productForm").classList.remove("hide"); document.getElementById("productLoader").classList.remove("show"); }
+  };
+
+  window.saveBestSeller = async (e) => { e.preventDefault();
+    const name = document.getElementById("bsName").value.trim();
+    const type = document.getElementById("bsType").value.trim();
+    const price = parseFloat(document.getElementById("bsPrice").value);
+    const file = document.getElementById("bsImage").files[0];
+    if (!name || !type || !price) return alert("Fill all fields!");
+    document.getElementById("bestSellerForm").classList.add("hide");
+    document.getElementById("bestSellerLoader").classList.add("show");
+    let imageUrl = file ? await uploadImage(file, "bestsellers") : (window.editingId ? window.allBestsellers.find(i=>i.id===window.editingId)?.imageUrl : "");
+    const data = { name, type, price, imageUrl };
+    try {
+      window.editingId ? await update(ref(db, 'bestsellers/'+window.editingId), data) : await push(ref(db, 'bestsellers'), data);
+      showSuccessToast(window.editingId ? "Best seller updated!" : "Best seller added!");
+      bootstrap.Modal.getInstance(document.getElementById("bestSellerModal")).hide();
+    } catch(err) { alert(err.message); }
+    finally { document.getElementById("bestSellerForm").classList.remove("hide"); document.getElementById("bestSellerLoader").classList.remove("show"); }
+  };
+
+  window.saveTestimonial = async (e) => { e.preventDefault();
+    const name = document.getElementById("testimonialName").value.trim();
+    const desc = document.getElementById("testimonialDesc").value.trim();
+    const file = document.getElementById("testimonialImage").files[0];
+    if (!name || !desc) return alert("Fill name and description!");
+    document.getElementById("testimonialForm").classList.add("hide");
+    document.getElementById("testimonialLoader").classList.add("show");
+    let imageUrl = file ? await uploadImage(file, "testimonials") : (window.editingId ? window.allTestimonials.find(t=>t.id===window.editingId)?.imageUrl : "");
+    const data = { name, description: desc, imageUrl };
+    try {
+      window.editingId ? await update(ref(db, 'testimonials/'+window.editingId), data) : await push(ref(db, 'testimonials'), data);
+      showSuccessToast(window.editingId ? "Testimonial updated!" : "Testimonial added!");
+      bootstrap.Modal.getInstance(document.getElementById("testimonialModal")).hide();
+    } catch(err) { alert(err.message); }
+    finally { document.getElementById("testimonialForm").classList.remove("hide"); document.getElementById("testimonialLoader").classList.remove("show"); }
+  };
+
+  // DELETE
+  window.deleteCategory = id => confirm("Delete category?") && remove(ref(db, 'categories/'+id)).then(() => showSuccessToast("Category deleted"));
+  window.deleteProduct = id => confirm("Delete product?") && remove(ref(db, 'products/'+id)).then(() => showSuccessToast("Product deleted"));
+  window.deleteBestSeller = id => confirm("Delete best seller?") && remove(ref(db, 'bestsellers/'+id)).then(() => showSuccessToast("Best seller deleted"));
+  window.deleteTestimonial = id => confirm("Delete testimonial?") && remove(ref(db, 'testimonials/'+id)).then(() => showSuccessToast("Testimonial deleted"));
+
+  // SEARCH
+  window.filterCategories = () => { const term = (document.getElementById("searchCategories")?.value || "").toLowerCase(); renderCategories(window.allCategories.filter(c => c.name.toLowerCase().includes(term))); };
+  window.filterProducts = () => { const term = (document.getElementById("searchProducts")?.value || "").toLowerCase(); renderProducts(window.allProducts.filter(p => p.name.toLowerCase().includes(term))); };
+  window.filterBestsellers = () => { const term = (document.getElementById("searchBestsellers")?.value || "").toLowerCase(); renderBestsellers(window.allBestsellers.filter(i => i.name.toLowerCase().includes(term) || (i.type||'').toLowerCase().includes(term))); };
+  window.filterTestimonials = () => { const term = (document.getElementById("searchTestimonials")?.value || "").toLowerCase(); renderTestimonials(window.allTestimonials.filter(t => t.name.toLowerCase().includes(term) || (t.description||'').toLowerCase().includes(term))); };
+
+  // NAVIGATION
+  window.showSection = (sec, e) => {
+    e.preventDefault();
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    document.getElementById(sec).classList.add("active");
+    document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
+    e.target.closest(".nav-link").classList.add("active");
+  };
+
+  // INITIAL SPINNERS
+  ["categories","products","bestsellers","testimonials"].forEach(s => 
+    document.getElementById(s+"Loading").style.display = "block"
+  );
+</script>
+
+</body>
+</html>
