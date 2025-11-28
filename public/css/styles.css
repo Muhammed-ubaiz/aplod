@@ -16288,9 +16288,9 @@ ul.list-text.type-number {
   .header-style-2 .box-nav-ul {
     gap: 13px;
   }
-  .tf-slideshow .wrap-slider {
+  /* .tf-slideshow .wrap-slider {
     height: 700px;
-  }
+  } */
   .wrapper-shop.tf-col-7 {
     column-gap: 15px;
   }
@@ -16628,9 +16628,9 @@ ul.list-text.type-number {
   .tab-shipping {
     flex-direction: column;
   }
-  .tf-slideshow .wrap-slider {
+  /* .tf-slideshow .wrap-slider {
     height: 500px;
-  }
+  } */
   .tf-slideshow .box-title-slider p br {
     display: none;
   }
@@ -17238,9 +17238,9 @@ ul.list-text.type-number {
   .tf-main-product.full-width > div {
     width: 100%;
   }
-  .tf-slideshow .wrap-slider {
+  /* .tf-slideshow .wrap-slider {
     height: 400px;
-  }
+  } */
   .tf-slideshow .wrap-slider.h-600 {
     height: 600px;
   }
