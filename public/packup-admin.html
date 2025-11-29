@@ -58,6 +58,9 @@
         <a class="nav-link" onclick="showSection('products', event)"><i class="fas fa-box"></i> Products</a>
         <a class="nav-link" onclick="showSection('bestsellers', event)"><i class="fas fa-star"></i> Best Sellers</a>
         <a class="nav-link" onclick="showSection('testimonials', event)"><i class="fas fa-quote-left"></i> Testimonials</a>
+        <a class="nav-link" onclick="showSection('orders', event)">
+        <i class="fas fa-shopping-bag"></i> Orders
+        </a>
       </nav>
     </div>
 
@@ -224,6 +227,70 @@
           </div>
         </div>
       </div>
+
+      <!-- ADD THIS SECTION IN YOUR ADMIN PANEL MAIN CONTENT (after testimonials section) -->
+      <div id="orders" class="section">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+              <h1>Manage Orders</h1>
+              <div>
+                  <select class="form-select d-inline-block w-auto" id="filterOrderStatus" onchange="filterOrders()">
+                      <option value="all">All Orders</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Processing">Processing</option>
+                      <option value="Shipped">Shipped</option>
+                      <option value="Delivered">Delivered</option>
+                      <option value="Cancelled">Cancelled</option>
+                  </select>
+              </div>
+          </div>
+          <div class="card">
+              <div class="card-body">
+                  <input type="text" class="form-control mb-3" placeholder="Search orders by ID, customer name, email..." 
+                        id="searchOrders" onkeyup="filterOrders()">
+                  <div id="ordersLoading" class="loading">
+                      <div class="spinner-border"></div>
+                      <p class="mt-3">Loading orders...</p>
+                  </div>
+                  <div class="table-responsive" id="ordersTableWrapper" style="display:none;">
+                      <table class="table table-hover align-middle">
+                          <thead class="table-light">
+                              <tr>
+                                  <th>Order ID</th>
+                                  <th>Customer</th>
+                                  <th>Items</th>
+                                  <th>Total</th>
+                                  <th>Payment</th>
+                                  <th>Status</th>
+                                  <th>Date</th>
+                                  <th>Actions</th>
+                              </tr>
+                          </thead>
+                          <tbody id="ordersTable"></tbody>
+                      </table>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      <!-- Order Details Modal -->
+      <div class="modal fade" id="orderDetailsModal" tabindex="-1">
+          <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h5 class="modal-title">Order Details</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body" id="orderDetailsContent">
+                      <!-- Order details will be loaded here -->
+                  </div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+
 
     </div>
   </div>
@@ -418,6 +485,7 @@
   window.allProducts = [];
   window.allBestsellers = [];
   window.allTestimonials = [];
+  window.allOrders = []; // NEW: Added orders array
   window.editingId = null;
 
   // SUCCESS TOAST
@@ -474,6 +542,7 @@
   loadData('products',      window.allProducts,      () => { renderProducts(); updateStats(); });
   loadData('bestsellers',   window.allBestsellers,   () => { renderBestsellers(); updateStats(); });
   loadData('testimonials',  window.allTestimonials,  () => { renderTestimonials(); updateStats(); });
+  loadData('orders',        window.allOrders,        () => { renderOrders(); updateStats(); }); // NEW: Load orders
 
   // UPDATE PRODUCT CATEGORY DROPDOWN
   function updateProductCategorySelect() {
@@ -560,11 +629,69 @@
     document.getElementById("testimonialsTableWrapper").style.display = "block";
   }
 
+  // NEW: RENDER ORDERS FUNCTION
+  function renderOrders(arr = window.allOrders) {
+    const tbody = document.getElementById("ordersTable");
+    
+    if (!tbody) return;
+
+    // Sort by timestamp (newest first)
+    const sortedOrders = arr.sort((a, b) => b.timestamp - a.timestamp);
+
+    tbody.innerHTML = sortedOrders.length === 0 
+      ? `<tr><td colspan="8" class="text-center py-4 text-muted">No orders found</td></tr>`
+      : sortedOrders.map(order => {
+          const date = new Date(order.orderDate || order.timestamp);
+          return `<tr>
+            <td><strong>${order.orderId}</strong></td>
+            <td>
+              ${order.customerInfo.firstName} ${order.customerInfo.lastName}<br>
+              <small class="text-muted">${order.customerInfo.email}</small>
+            </td>
+            <td>${order.items?.length || 0} item(s)</td>
+            <td><strong>₹${Number(order.total || 0).toFixed(2)}</strong></td>
+            <td><span class="badge bg-secondary">${order.paymentMethod}</span></td>
+            <td>
+              <select class="form-select form-select-sm" 
+                      style="width: auto; display: inline-block;"
+                      onchange="updateOrderStatus('${order.id}', this.value)">
+                <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+              </select>
+            </td>
+            <td><small>${date.toLocaleDateString()}<br>${date.toLocaleTimeString()}</small></td>
+            <td>
+              <button class="btn btn-sm btn-info me-2" onclick="viewOrderDetails('${order.id}')">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" onclick="deleteOrder('${order.id}')">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>`;
+        }).join('');
+
+    if (document.getElementById("ordersLoading")) {
+      document.getElementById("ordersLoading").style.display = "none";
+    }
+    if (document.getElementById("ordersTableWrapper")) {
+      document.getElementById("ordersTableWrapper").style.display = "block";
+    }
+  }
+
   function updateStats() {
     document.getElementById("totalCategories").textContent = window.allCategories.length;
     document.getElementById("totalProducts").textContent = window.allProducts.length;
     document.getElementById("totalBestsellers").textContent = window.allBestsellers.length;
     document.getElementById("totalTestimonials").textContent = window.allTestimonials.length;
+    
+    // NEW: Update orders stat if element exists
+    if (document.getElementById("totalOrders")) {
+      document.getElementById("totalOrders").textContent = window.allOrders.length;
+    }
   }
 
   // OPEN MODALS
@@ -696,11 +823,153 @@
   window.deleteBestSeller = id => confirm("Delete best seller?") && remove(ref(db, 'bestsellers/'+id)).then(() => showSuccessToast("Best seller deleted"));
   window.deleteTestimonial = id => confirm("Delete testimonial?") && remove(ref(db, 'testimonials/'+id)).then(() => showSuccessToast("Testimonial deleted"));
 
+  // NEW: DELETE ORDER
+  window.deleteOrder = (id) => {
+    if (confirm("Are you sure you want to delete this order? This action cannot be undone.")) {
+      remove(ref(db, 'orders/' + id))
+        .then(() => showSuccessToast("Order deleted successfully"))
+        .catch(err => {
+          console.error("Delete failed:", err);
+          alert("Failed to delete order");
+        });
+    }
+  };
+
+  // NEW: UPDATE ORDER STATUS
+  window.updateOrderStatus = async (id, newStatus) => {
+    try {
+      await update(ref(db, 'orders/' + id), { status: newStatus });
+      showSuccessToast(`Order status updated to ${newStatus}`);
+    } catch (err) {
+      console.error("Update status failed:", err);
+      alert("Failed to update order status");
+    }
+  };
+
+  // NEW: VIEW ORDER DETAILS
+  window.viewOrderDetails = (id) => {
+    const order = window.allOrders.find(o => o.id === id);
+    if (!order) return;
+
+    const content = document.getElementById('orderDetailsContent');
+    if (!content) return;
+
+    content.innerHTML = `
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <h6>Order Information</h6>
+          <p><strong>Order ID:</strong> ${order.orderId}</p>
+          <p><strong>Date:</strong> ${new Date(order.orderDate || order.timestamp).toLocaleString()}</p>
+          <p><strong>Status:</strong> <span class="badge bg-warning">${order.status}</span></p>
+          <p><strong>Payment Method:</strong> ${order.paymentMethod}</p>
+        </div>
+        <div class="col-md-6 mb-3">
+          <h6>Customer Information</h6>
+          <p><strong>Name:</strong> ${order.customerInfo.firstName} ${order.customerInfo.lastName}</p>
+          <p><strong>Email:</strong> ${order.customerInfo.email}</p>
+          <p><strong>Phone:</strong> ${order.customerInfo.phone}</p>
+          <p><strong>Address:</strong><br>
+            ${order.customerInfo.address}<br>
+            ${order.customerInfo.city}, ${order.customerInfo.state} ${order.customerInfo.pincode}<br>
+            ${order.customerInfo.country}
+          </p>
+        </div>
+      </div>
+
+      <hr>
+
+      <h6>Order Items</h6>
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${order.items.map(item => `
+            <tr>
+              <td>
+                <img src="${item.imageUrl || 'images/products/placeholder.jpg'}" 
+                     style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" 
+                     class="me-2">
+                ${item.name}
+                ${item.type ? `<br><small class="text-muted">${item.type}</small>` : ''}
+              </td>
+              <td>${item.quantity}</td>
+              <td>₹${Number(item.price).toFixed(2)}</td>
+              <td>₹${(item.price * item.quantity).toFixed(2)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <div class="row mt-3">
+        <div class="col-md-6 offset-md-6">
+          <table class="table table-sm">
+            <tr>
+              <td><strong>Subtotal:</strong></td>
+              <td class="text-end">₹${Number(order.subtotal).toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td><strong>Shipping:</strong></td>
+              <td class="text-end">₹${Number(order.shipping).toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td><strong>Tax:</strong></td>
+              <td class="text-end">₹${Number(order.tax || 0).toFixed(2)}</td>
+            </tr>
+            <tr class="table-primary">
+              <td><strong>Grand Total:</strong></td>
+              <td class="text-end"><strong>₹${Number(order.total).toFixed(2)}</strong></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      ${order.orderNotes ? `
+        <hr>
+        <h6>Order Notes</h6>
+        <p class="text-muted">${order.orderNotes}</p>
+      ` : ''}
+    `;
+
+    new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();
+  };
+
   // SEARCH
   window.filterCategories = () => { const term = (document.getElementById("searchCategories")?.value || "").toLowerCase(); renderCategories(window.allCategories.filter(c => c.name.toLowerCase().includes(term))); };
   window.filterProducts = () => { const term = (document.getElementById("searchProducts")?.value || "").toLowerCase(); renderProducts(window.allProducts.filter(p => p.name.toLowerCase().includes(term))); };
   window.filterBestsellers = () => { const term = (document.getElementById("searchBestsellers")?.value || "").toLowerCase(); renderBestsellers(window.allBestsellers.filter(i => i.name.toLowerCase().includes(term) || (i.type||'').toLowerCase().includes(term))); };
   window.filterTestimonials = () => { const term = (document.getElementById("searchTestimonials")?.value || "").toLowerCase(); renderTestimonials(window.allTestimonials.filter(t => t.name.toLowerCase().includes(term) || (t.description||'').toLowerCase().includes(term))); };
+
+  // NEW: FILTER ORDERS
+  window.filterOrders = () => {
+    const searchTerm = (document.getElementById("searchOrders")?.value || "").toLowerCase();
+    const statusFilter = document.getElementById("filterOrderStatus")?.value || "all";
+
+    let filtered = window.allOrders;
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(order => 
+        order.orderId.toLowerCase().includes(searchTerm) ||
+        order.customerInfo.firstName.toLowerCase().includes(searchTerm) ||
+        order.customerInfo.lastName.toLowerCase().includes(searchTerm) ||
+        order.customerInfo.email.toLowerCase().includes(searchTerm) ||
+        order.customerInfo.phone.includes(searchTerm)
+      );
+    }
+
+    // Filter by status
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(order => order.status === statusFilter);
+    }
+
+    renderOrders(filtered);
+  };
 
   // NAVIGATION
   window.showSection = (sec, e) => {
@@ -712,9 +981,10 @@
   };
 
   // INITIAL SPINNERS
-  ["categories","products","bestsellers","testimonials"].forEach(s => 
-    document.getElementById(s+"Loading").style.display = "block"
-  );
+  ["categories","products","bestsellers","testimonials","orders"].forEach(s => {
+    const loadingEl = document.getElementById(s+"Loading");
+    if (loadingEl) loadingEl.style.display = "block";
+  });
 </script>
 
 </body>

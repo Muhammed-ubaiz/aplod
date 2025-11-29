@@ -393,7 +393,7 @@ if (collectionWrapper) {
                     <p class="text-secondary">Your cart is empty</p>
                     <a href="index.html" class="btn-line">Continue Shopping</a>
                 </div>`;
-            if (subtotalEl) subtotalEl.textContent = '$0.00';
+            if (subtotalEl) subtotalEl.textContent = '₹0.00';
             return;
         }
 
@@ -413,7 +413,7 @@ if (collectionWrapper) {
                     </div>
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-12">
                         ${item.type ? `<div class="text-secondary-2">${item.type}</div>` : '<div></div>'}
-                        <div class="text-button">${item.quantity} × $${Number(item.price).toFixed(2)}</div>
+                        <div class="text-button">${item.quantity} × ₹${Number(item.price).toFixed(2)}</div>
                     </div>
                 </div>
             </div>
@@ -421,7 +421,7 @@ if (collectionWrapper) {
 
         // Update subtotal
         const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+        if (subtotalEl) subtotalEl.textContent = `₹${subtotal.toFixed(2)}`;
     }
 
     // Toast (reuse your existing or add this)

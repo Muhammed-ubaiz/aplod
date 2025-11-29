@@ -14,6 +14,7 @@
 	<link rel="stylesheet" href="css/animate.css">
 	<link rel="stylesheet" href="css/styles.css" />
 	<link rel="shortcut icon" href="images/logo/PACKUP-LOGO-2.png">
+	<link rel="apple-touch-icon-precomposed" href="images/logo/PACKUP-LOGO-2.png">
 </head>
 
 <body class="preload-wrapper">
@@ -75,26 +76,20 @@
 							<li class="menu-item">
 								<a href="about-us.html" class="item-link">About Us</a>
 							</li>
-							<li class="menu-item">
-								<a href="contact-02.html" class="item-link">Contact</a>
+						
+											<li class="menu-item">
+								<a href="bestsellers.html" class="item-link">Best Sellers</a>
+						
 							</li>
-							<li class="menu-item">
-								<a href="#" class="item-link">Blogs</a>
+								<li class="menu-item">
+								<a href="contact-02.html" class="item-link">Contact</a>
 							</li>
 						</ul>
 					</nav>
 				</div>
 				<div class="col-xl-3 col-md-4 col-3">
 					<ul class="nav-icon d-flex justify-content-end align-items-center">
-						<li class="nav-wishlist"><a href="wish-list.html" class="nav-icon-item">
-								<svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none"
-									xmlns="http://www.w3.org/2000/svg">
-									<path
-										d="M20.8401 4.60987C20.3294 4.09888 19.7229 3.69352 19.0555 3.41696C18.388 3.14039 17.6726 2.99805 16.9501 2.99805C16.2276 2.99805 15.5122 3.14039 14.8448 3.41696C14.1773 3.69352 13.5709 4.09888 13.0601 4.60987L12.0001 5.66987L10.9401 4.60987C9.90843 3.57818 8.50915 2.99858 7.05012 2.99858C5.59109 2.99858 4.19181 3.57818 3.16012 4.60987C2.12843 5.64156 1.54883 7.04084 1.54883 8.49987C1.54883 9.95891 2.12843 11.3582 3.16012 12.3899L4.22012 13.4499L12.0001 21.2299L19.7801 13.4499L20.8401 12.3899C21.3511 11.8791 21.7565 11.2727 22.033 10.6052C22.3096 9.93777 22.4519 9.22236 22.4519 8.49987C22.4519 7.77738 22.3096 7.06198 22.033 6.39452C21.7565 5.72706 21.3511 5.12063 20.8401 4.60987V4.60987Z"
-										stroke="#181818" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-								</svg>
-							</a>
-						</li>
+					
 						<li class="nav-cart"><a href="#shoppingCart" data-bs-toggle="modal" class="nav-icon-item">
 								<svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none"
 									xmlns="http://www.w3.org/2000/svg">
@@ -475,61 +470,138 @@
 		});
 	}
 
-	// Cart System
-	const CART_REF = 'carts';
-	let cartId = localStorage.getItem('cartSessionId');
-	if (!cartId) {
-		cartId = 'guest_' + Date.now() + Math.floor(Math.random() * 10000);
-		localStorage.setItem('cartSessionId', cartId);
-	}
+		    // ==================== CART SYSTEM ====================
+    const CART_REF = 'carts';
+    let cartId = localStorage.getItem('cartSessionId');
+    if (!cartId) {
+        cartId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('cartSessionId', cartId);
+    }
+    const userCartRef = ref(db, `${CART_REF}/${cartId}`);
 
-	window.addToCart = async (product) => {
-		try {
-			const cartRef = ref(db, `${CART_REF}/${cartId}`);
-			const snap = await get(cartRef);
-			const cart = snap.val() || {};
+    // Load cart on page load
+    onValue(userCartRef, (snapshot) => {
+        const cartItems = snapshot.val() || {};
+        renderMiniCart(Object.values(cartItems));
+        updateCartCount();
+    });
 
-			const pid = product.id.toString();
-			if (cart[pid]) {
-				cart[pid].quantity += 1;
-			} else {
-				cart[pid] = {
-					id: pid,
-					name: product.name,
-					price: product.price,
-					imageUrl: product.imageUrl,
-					type: product.type || '',
-					quantity: 1
-				};
-			}
+    // Update cart item count in header
+    function updateCartCount() {
+        const countEl = document.querySelector('.nav-cart .count-box');
+        onValue(userCartRef, (snap) => {
+            const items = snap.val() || {};
+            const total = Object.values(items).reduce((sum, item) => sum + (item.quantity || 1), 0);
+            if (countEl) countEl.textContent = total;
+        }, { onlyOnce: true });
+    }
 
-			await set(cartRef, cart);
-			showSuccessToast(`"${product.name}" added to cart!`);
+    // Add to Cart Function (call from Add to Cart buttons)
+    window.addToCart = async (product) => {
+        try {
+            const snapshot = await get(userCartRef);
+            const currentCart = snapshot.val() || {};
 
-			// Auto-open cart modal
-			const modalEl = document.getElementById('shoppingCart');
-			if (modalEl) new bootstrap.Modal(modalEl).show();
-		} catch (err) {
-			console.error(err);
-			alert("Failed to add to cart");
-		}
-	};
+            const productId = product.id || Date.now().toString();
+            if (currentCart[productId]) {
+                // Increase quantity
+                currentCart[productId].quantity += 1;
+            } else {
+                // Add new item
+                currentCart[productId] = {
+                    id: productId,
+                    name: product.name,
+                    price: product.price,
+                    imageUrl: product.imageUrl,
+                    type: product.type || '',
+                    quantity: 1
+                };
+            }
 
-	window.showSuccessToast = (msg) => {
-		const toast = document.createElement('div');
-		toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed';
-		toast.style.top = '20px';
-		toast.style.right = '20px';
-		toast.style.zIndex = '9999';
-		toast.innerHTML = `
-			<div class="d-flex">
-				<div class="toast-body">${msg}</div>
-				<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-			</div>`;
-		document.body.appendChild(toast);
-		new bootstrap.Toast(toast, { delay: 3000 }).show();
-		setTimeout(() => toast.remove(), 4000);
-	};
+            await set(userCartRef, currentCart);
+            showSuccessToast(`"${product.name}" added to cart!`);
+
+            // Auto open cart modal
+            const modal = new bootstrap.Modal(document.getElementById('shoppingCart'));
+            modal.show();
+        } catch (err) {
+            console.error("Add to cart failed:", err);
+            alert("Failed to add item to cart");
+        }
+    };
+
+    // Remove from Cart
+    window.removeFromCart = async (productId) => {
+        try {
+            const snapshot = await get(userCartRef);
+            const cart = snapshot.val() || {};
+            delete cart[productId];
+            await set(userCartRef, cart);
+            showSuccessToast("Item removed from cart");
+        } catch (err) {
+            console.error("Remove failed:", err);
+        }
+    };
+
+    // Render Mini Cart in Modal
+    function renderMiniCart(items) {
+        const container = document.querySelector('#shoppingCart .tf-mini-cart-items');
+        const subtotalEl = document.querySelector('#shoppingCart .tf-totals-total-value');
+
+        if (!container) return;
+
+        if (items.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5">
+                    <p class="text-secondary">Your cart is empty</p>
+                    <a href="index.html" class="btn-line">Continue Shopping</a>
+                </div>`;
+            if (subtotalEl) subtotalEl.textContent = '₹0.00';
+            return;
+        }
+
+        container.innerHTML = items.map(item => `
+            <div class="tf-mini-cart-item file-delete" data-id="${item.id}">
+                <div class="tf-mini-cart-image">
+                    <img class="lazyload" src="${item.imageUrl || 'images/products/placeholder.jpg'}" alt="${item.name}">
+                </div>
+                <div class="tf-mini-cart-info flex-grow-1">
+                    <div class="mb_12 d-flex align-items-center justify-content-between flex-wrap gap-12">
+                        <div class="text-title">
+                            <a href="product-detail.html" class="link text-line-clamp-1">${item.name}</a>
+                        </div>
+                        <div class="text-button tf-btn-remove remove" onclick="removeFromCart('${item.id}')">
+                            Remove
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-12">
+                        ${item.type ? `<div class="text-secondary-2">${item.type}</div>` : '<div></div>'}
+                        <div class="text-button">${item.quantity} × ₹${Number(item.price).toFixed(2)}</div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        // Update subtotal
+        const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        if (subtotalEl) subtotalEl.textContent = `₹${subtotal.toFixed(2)}`;
+    }
+
+    // Toast (reuse your existing or add this)
+    window.showSuccessToast = (msg) => {
+        const toast = `
+            <div class="toast align-items-center text-white bg-success border-0 position-fixed" style="top:20px;right:20px;z-index:9999;">
+                <div class="d-flex">
+                    <div class="toast-body">${msg}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>`;
+        const el = document.createElement('div');
+        el.innerHTML = toast;
+        document.body.appendChild(el);
+        new bootstrap.Toast(el.querySelector('.toast'), { delay: 3000 }).show();
+        setTimeout(() => el.remove(), 4000);
+    };
 </script>
 </body>
 </html>
