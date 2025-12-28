@@ -10,7 +10,29 @@
     @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: "Montserrat", sans-serif; background: #f8f9fa; }
-    .dashboard-wrapper { display: flex; min-height: 100vh; }
+    
+    /* Login Page Styles */
+    .login-wrapper { display: none; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #253169 0%, #3c94fa 100%); }
+    .login-wrapper.show { display: flex; }
+    .login-box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 40px rgba(30, 102, 211, 0.3); width: 100%; max-width: 400px; }
+    .login-logo { text-align: center; margin-bottom: 30px; }
+    .login-logo i { font-size: 3rem; color: #253169; margin-bottom: 10px; }
+    .login-logo h2 { color: #253169; font-weight: 700; margin: 0; }
+    .login-logo p { color: #6c757d; font-size: 0.9rem; margin-top: 5px; }
+    .login-form .form-control { padding: 12px 15px; border-radius: 8px; border: 1px solid #ddd; }
+    .login-form .form-control:focus { border-color: #253169; box-shadow: 0 0 0 0.2rem rgba(37, 49, 105, 0.25); }
+    .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #253169 0%, #1a1f3a 100%); border: none; border-radius: 8px; color: white; font-weight: 600; transition: all 0.3s ease; }
+    .login-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(37, 49, 105, 0.3); }
+    .login-error { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; border: 1px solid #f5c6cb; }
+    .login-error.show { display: block; }
+    
+    /* Loading Spinner */
+    .auth-loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #253169 0%, #1a1f3a 100%); }
+    .auth-loading .spinner-border { color: white; width: 3rem; height: 3rem; }
+    
+    .dashboard-wrapper { display: none; min-height: 100vh; }
+    .dashboard-wrapper.show { display: flex; }
+    
     .sidebar { width: 250px; background: linear-gradient(135deg, #253169 0%, #1a1f3a 100%); color: white; padding: 30px 20px; position: fixed; height: 100vh; overflow-y: auto; left: 0; top: 0; z-index: 1000; }
     .logo { display: flex; flex-direction: column; align-items: center; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.2); }
     .logo i { font-size: 2.5rem; margin-bottom: 10px; }
@@ -18,6 +40,8 @@
     .nav-link { color: rgba(255,255,255,0.8); text-decoration: none; padding: 12px 15px; border-radius: 8px; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; cursor: pointer; }
     .nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
     .nav-link.active { background: rgba(255,255,255,0.25); color: white; font-weight: 600; }
+    .logout-btn { color: rgba(255,255,255,0.8); text-decoration: none; padding: 12px 15px; border-radius: 8px; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; cursor: pointer; background: rgba(220, 53, 69, 0.3); margin-top: 20px; border: 1px solid rgba(220, 53, 69, 0.5); }
+    .logout-btn:hover { background: rgba(220, 53, 69, 0.5); color: white; }
     .main-content { margin-left: 250px; padding: 30px; flex: 1; background: #f8f9fa; }
     .section { display: none; }
     .section.active { display: block; animation: fadeIn 0.3s ease; }
@@ -46,7 +70,41 @@
 </head>
 <body>
 
-  <div class="dashboard-wrapper">
+  <!-- Auth Loading Spinner -->
+  <div id="authLoading" class="auth-loading">
+    <div class="spinner-border"></div>
+  </div>
+
+  <!-- Login Page -->
+  <div id="loginPage" class="login-wrapper">
+    <div class="login-box">
+      <div class="login-logo">
+        <i class="fas fa-layer-group"></i>
+        <h2>Packup - Admin Panel</h2>
+        <p>Sign in to continue</p>
+      </div>
+      <div id="loginError" class="login-error">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span id="loginErrorMsg">Invalid credentials</span>
+      </div>
+      <form class="login-form" onsubmit="handleLogin(event)">
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" id="loginEmail" placeholder="Enter your email" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password" required>
+        </div>
+        <button type="submit" class="login-btn">
+          <i class="fas fa-sign-in-alt me-2"></i> Sign In
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard-wrapper" id="dashboardPage">
     <div class="sidebar">
       <div class="logo">
         <i class="fas fa-layer-group"></i>
@@ -60,6 +118,9 @@
         <a class="nav-link" onclick="showSection('testimonials', event)"><i class="fas fa-quote-left"></i> Testimonials</a>
         <a class="nav-link" onclick="showSection('orders', event)">
         <i class="fas fa-shopping-bag"></i> Orders
+        </a>
+        <a class="logout-btn" onclick="handleLogout()">
+          <i class="fas fa-sign-out-alt"></i> Logout
         </a>
       </nav>
     </div>
@@ -228,7 +289,7 @@
         </div>
       </div>
 
-      <!-- ADD THIS SECTION IN YOUR ADMIN PANEL MAIN CONTENT (after testimonials section) -->
+      <!-- Orders -->
       <div id="orders" class="section">
           <div class="d-flex justify-content-between align-items-center mb-4">
               <h1>Manage Orders</h1>
@@ -289,8 +350,6 @@
               </div>
           </div>
       </div>
-
-
 
     </div>
   </div>
@@ -466,6 +525,7 @@
     getDatabase, ref, onValue, push, update, remove 
   } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
   import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDfB0pwHCxzPHzeyPa0GvLOS-gQg0CaDA4",
@@ -480,13 +540,74 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const storage = getStorage(app);
+  const auth = getAuth(app);
 
   window.allCategories = [];
   window.allProducts = [];
   window.allBestsellers = [];
   window.allTestimonials = [];
-  window.allOrders = []; // NEW: Added orders array
+  window.allOrders = [];
   window.editingId = null;
+
+  // AUTHENTICATION CHECK
+  onAuthStateChanged(auth, (user) => {
+    // Hide loading spinner
+    document.getElementById("authLoading").style.display = "none";
+    
+    if (user) {
+      // User is logged in
+      document.getElementById("loginPage").classList.remove("show");
+      document.getElementById("dashboardPage").classList.add("show");
+      // Load data only after authentication
+      initializeData();
+    } else {
+      // User is not logged in
+      document.getElementById("loginPage").classList.add("show");
+      document.getElementById("dashboardPage").classList.remove("show");
+    }
+  });
+
+  // LOGIN HANDLER
+  window.handleLogin = async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
+    const errorDiv = document.getElementById("loginError");
+    const errorMsg = document.getElementById("loginErrorMsg");
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // Success - onAuthStateChanged will handle the redirect
+      errorDiv.classList.remove("show");
+    } catch (error) {
+      console.error("Login error:", error);
+      errorMsg.textContent = "Invalid email or password. Please try again.";
+      errorDiv.classList.add("show");
+    }
+  };
+
+  // LOGOUT HANDLER
+  window.handleLogout = async () => {
+    if (confirm("Are you sure you want to logout?")) {
+      try {
+        await signOut(auth);
+        // onAuthStateChanged will handle showing login page
+        window.showSuccessToast("Logged out successfully!");
+      } catch (error) {
+        console.error("Logout error:", error);
+        alert("Failed to logout. Please try again.");
+      }
+    }
+  };
+
+  // INITIALIZE DATA LOADING
+  function initializeData() {
+    loadData('categories',    window.allCategories,    () => { renderCategories(); updateProductCategorySelect(); updateStats(); });
+    loadData('products',      window.allProducts,      () => { renderProducts(); updateStats(); });
+    loadData('bestsellers',   window.allBestsellers,   () => { renderBestsellers(); updateStats(); });
+    loadData('testimonials',  window.allTestimonials,  () => { renderTestimonials(); updateStats(); });
+    loadData('orders',        window.allOrders,        () => { renderOrders(); updateStats(); });
+  }
 
   // SUCCESS TOAST
   window.showSuccessToast = (msg) => {
@@ -524,11 +645,11 @@
     });
   });
 
-  // FIXED DATA LOADING — THIS IS THE KEY FIX
+  // DATA LOADING
   function loadData(path, targetArray, callback) {
     onValue(ref(db, path), (snapshot) => {
       const data = snapshot.val();
-      targetArray.length = 0; // clear array safely
+      targetArray.length = 0;
       if (data) {
         Object.keys(data).forEach(key => {
           targetArray.push({ id: key, ...data[key] });
@@ -537,12 +658,6 @@
       if (callback) callback();
     });
   }
-
-  loadData('categories',    window.allCategories,    () => { renderCategories(); updateProductCategorySelect(); updateStats(); });
-  loadData('products',      window.allProducts,      () => { renderProducts(); updateStats(); });
-  loadData('bestsellers',   window.allBestsellers,   () => { renderBestsellers(); updateStats(); });
-  loadData('testimonials',  window.allTestimonials,  () => { renderTestimonials(); updateStats(); });
-  loadData('orders',        window.allOrders,        () => { renderOrders(); updateStats(); }); // NEW: Load orders
 
   // UPDATE PRODUCT CATEGORY DROPDOWN
   function updateProductCategorySelect() {
@@ -583,7 +698,7 @@
             <td><img src="${p.imageUrl || 'https://via.placeholder.com/50'}" class="table-img" alt="${p.name}"></td>
             <td><strong>${p.name}</strong></td>
             <td>${catName}</td>
-            <td>$${Number(p.price||0).toFixed(2)}</td>
+            <td>${Number(p.price||0).toFixed(2)}</td>
             <td>
               <button class="btn btn-sm btn-warning me-2" onclick="editProduct('${p.id}')"><i class="fas fa-edit"></i></button>
               <button class="btn btn-sm btn-danger" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button>
@@ -602,7 +717,7 @@
           <td><img src="${i.imageUrl || 'https://via.placeholder.com/50'}" class="table-img" alt="${i.name}"></td>
           <td><strong>${i.name}</strong></td>
           <td>${i.type || '-'}</td>
-          <td>$${Number(i.price||0).toFixed(2)}</td>
+          <td>${Number(i.price||0).toFixed(2)}</td>
           <td>
             <button class="btn btn-sm btn-warning me-2" onclick="editBestSeller('${i.id}')"><i class="fas fa-edit"></i></button>
             <button class="btn btn-sm btn-danger" onclick="deleteBestSeller('${i.id}')"><i class="fas fa-trash"></i></button>
@@ -629,13 +744,11 @@
     document.getElementById("testimonialsTableWrapper").style.display = "block";
   }
 
-  // NEW: RENDER ORDERS FUNCTION
   function renderOrders(arr = window.allOrders) {
     const tbody = document.getElementById("ordersTable");
     
     if (!tbody) return;
 
-    // Sort by timestamp (newest first)
     const sortedOrders = arr.sort((a, b) => b.timestamp - a.timestamp);
 
     tbody.innerHTML = sortedOrders.length === 0 
@@ -688,7 +801,6 @@
     document.getElementById("totalBestsellers").textContent = window.allBestsellers.length;
     document.getElementById("totalTestimonials").textContent = window.allTestimonials.length;
     
-    // NEW: Update orders stat if element exists
     if (document.getElementById("totalOrders")) {
       document.getElementById("totalOrders").textContent = window.allOrders.length;
     }
@@ -823,7 +935,6 @@
   window.deleteBestSeller = id => confirm("Delete best seller?") && remove(ref(db, 'bestsellers/'+id)).then(() => showSuccessToast("Best seller deleted"));
   window.deleteTestimonial = id => confirm("Delete testimonial?") && remove(ref(db, 'testimonials/'+id)).then(() => showSuccessToast("Testimonial deleted"));
 
-  // NEW: DELETE ORDER
   window.deleteOrder = (id) => {
     if (confirm("Are you sure you want to delete this order? This action cannot be undone.")) {
       remove(ref(db, 'orders/' + id))
@@ -835,7 +946,6 @@
     }
   };
 
-  // NEW: UPDATE ORDER STATUS
   window.updateOrderStatus = async (id, newStatus) => {
     try {
       await update(ref(db, 'orders/' + id), { status: newStatus });
@@ -846,7 +956,6 @@
     }
   };
 
-  // NEW: VIEW ORDER DETAILS
   window.viewOrderDetails = (id) => {
     const order = window.allOrders.find(o => o.id === id);
     if (!order) return;
@@ -945,14 +1054,12 @@
   window.filterBestsellers = () => { const term = (document.getElementById("searchBestsellers")?.value || "").toLowerCase(); renderBestsellers(window.allBestsellers.filter(i => i.name.toLowerCase().includes(term) || (i.type||'').toLowerCase().includes(term))); };
   window.filterTestimonials = () => { const term = (document.getElementById("searchTestimonials")?.value || "").toLowerCase(); renderTestimonials(window.allTestimonials.filter(t => t.name.toLowerCase().includes(term) || (t.description||'').toLowerCase().includes(term))); };
 
-  // NEW: FILTER ORDERS
   window.filterOrders = () => {
     const searchTerm = (document.getElementById("searchOrders")?.value || "").toLowerCase();
     const statusFilter = document.getElementById("filterOrderStatus")?.value || "all";
 
     let filtered = window.allOrders;
 
-    // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(order => 
         order.orderId.toLowerCase().includes(searchTerm) ||
@@ -963,7 +1070,6 @@
       );
     }
 
-    // Filter by status
     if (statusFilter !== "all") {
       filtered = filtered.filter(order => order.status === statusFilter);
     }
