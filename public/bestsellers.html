@@ -2,18 +2,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
 <head>
 	<meta charset="utf-8">
-	<title>Best Sellers | Packup - Cover Factory Calicut, Kerala</title>
+	<title>Best Sellers | Aplod</title>
 	<meta name="author" content="themesflat.com">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-	<meta name="description" content="Browse our best selling products - PackUp specializes in customized cover making for all brands">
+	<meta name="description" content="Browse Aplod best selling mobile covers and premium phone accessories.">
 	<link rel="stylesheet" href="fonts/fonts.css">
 	<link rel="stylesheet" href="fonts/font-icons.css">
 	<link rel="stylesheet" href="css/bootstrap.min.css">
 	<link rel="stylesheet" href="css/swiper-bundle.min.css">
 	<link rel="stylesheet" href="css/animate.css">
 	<link rel="stylesheet" type="text/css" href="css/styles.css" />
-	<link rel="shortcut icon" href="images/logo/PACKUP-LOGO-2.png">
-	<link rel="apple-touch-icon-precomposed" href="images/logo/PACKUP-LOGO-2.png">
+	<link rel="shortcut icon" href="images/logo/aplod-mark.svg">
+	<link rel="apple-touch-icon-precomposed" href="images/logo/aplod-mark.svg">
 </head>
 
 <body class="preload-wrapper">
@@ -76,7 +76,7 @@
 				</div>
 				<div class="col-xl-3 col-md-4 col-6">
 					<a href="index.html" class="logo-header">
-						<img src="images/logo/PACKUP-LOGO-1.png" alt="logo" class="logo">
+						<img src="images/logo/aplod-logo.svg" alt="logo" class="logo">
 					</a>
 				</div>
 				<div class="col-xl-6 d-none d-xl-block">
@@ -87,6 +87,12 @@
 							</li>
 							<li class="menu-item">
 								<a href="about-us.html" class="item-link">About Us</a>
+							</li>
+							<li class="menu-item">
+								<a href="cases.html" class="item-link">Cases</a>
+							</li>
+							<li class="menu-item">
+								<a href="screen-glass.html" class="item-link">Screen Glass</a>
 							</li>
 					
 										<li class="menu-item">
@@ -116,7 +122,7 @@
 		<!-- /Header -->
 
 		<!-- page-title -->
-		<div class="page-title" style="background-image: url(images/section/page-title.jpg);">
+		<div class="page-title" style="background-image: url(images/Web-Banner.jpg);">
 			<div class="container-full">
 				<div class="row">
 					<div class="col-12">
@@ -170,11 +176,11 @@
 								<div class="footer-infor">
 									<div class="footer-logo">
 										<a href="index.html">
-											<img src="images/logo/PACKUP-LOGO-1.png" style="width: 100%;" alt="">
+											<img src="images/logo/aplod-logo.svg" style="width: 100%;" alt="">
 										</a>
 									</div>
 									<div class="footer-address">
-										<p>PackUp is a manufacturing solutions company that builds customized covers</p>
+						<p>Aplod creates bold, premium mobile covers and accessories made for everyday style.</p>
 									</div>
 								</div>
 							</div>
@@ -199,7 +205,7 @@
 										<p>Ground Floor Mashriq Complex Stadium, Junction, Puthiyara Rd, Kozhikode, Kerala 673004</p>
 									</div>
 									<ul class="footer-info">
-										<li><i class="icon-mail"></i><p>packupcover@gmail.com</p></li>
+										<li><i class="icon-mail"></i><p>aplodcover@gmail.com</p></li>
 										<li><i class="icon-phone"></i><p>8086768080</p></li>
 									</ul>
 								</div>
@@ -213,7 +219,7 @@
 							<div class="col-12">
 								<div class="footer-bottom-wrap">
 									<div class="left">
-										<p class="text-caption-1">© 2024 PackUp. All Rights Reserved. Powered by Bynn Innovations.</p>
+										<p class="text-caption-1">© 2024 Aplod. All Rights Reserved. Powered by Bynn Innovations.</p>
 									</div>
 								</div>
 							</div>
@@ -278,21 +284,9 @@
 
 <!-- Cart Management Script -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-  import { getDatabase, ref, onValue, get, set } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+  import { initializeApp, getDatabase, ref, onValue, get, set } from "./js/local-store.js";
 
-  // Firebase Configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyDfB0pwHCxzPHzeyPa0GvLOS-gQg0CaDA4",
-    authDomain: "packup-4223f.firebaseapp.com",
-    databaseURL: "https://packup-4223f-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "packup-4223f",
-    storageBucket: "packup-4223f.firebasestorage.app",
-    messagingSenderId: "747632150416",
-    appId: "1:747632150416:web:69458ee5ad3ab5b27cd515"
-  };
-
-  const app = initializeApp(firebaseConfig);
+  const app = initializeApp();
   const db = getDatabase(app);
 
   // Cart Session Management
@@ -338,12 +332,12 @@
     container.innerHTML = items.map(item => `
       <div class="tf-mini-cart-item file-delete" data-id="${item.id}">
         <div class="tf-mini-cart-image">
-          <img class="lazyload" src="${item.imageUrl || 'images/products/placeholder.jpg'}" alt="${item.name}">
+          <img class="lazyload" src="${item.imageUrl || 'images/Screenshot 2026-05-19 182848.png'}" alt="${item.name}">
         </div>
         <div class="tf-mini-cart-info flex-grow-1">
           <div class="mb_12 d-flex align-items-center justify-content-between flex-wrap gap-12">
             <div class="text-title">
-              <a href="product-detail.html" class="link text-line-clamp-1">${item.name}</a>
+              <a href="products.html" class="link text-line-clamp-1">${item.name}</a>
             </div>
             <div class="text-button tf-btn-remove remove" onclick="removeFromCart('${item.id}')">
               Remove
@@ -436,7 +430,7 @@
   // BEST SELLERS FUNCTIONS
   // ============================================
 
-  // Load Best Sellers from Firebase
+  // Load Best Sellers
   function loadBestSellers() {
     const gridLayout = document.getElementById('gridLayout');
     const productCountGrid = document.getElementById('product-count-grid');
@@ -479,19 +473,23 @@
 
       // Render products
       bestsellers.forEach(item => {
+        const primaryImage = item.imageUrl || 'images/Screenshot 2026-05-19 182848.png';
+        const hoverImage = item.hoverImageUrl || item.insideImageUrl || primaryImage;
+        const insideImage = item.insideImageUrl || hoverImage;
+        const imageOptions = [primaryImage, hoverImage, insideImage];
         const productCard = document.createElement('div');
         productCard.className = 'card-product grid';
         
         productCard.innerHTML = `
           <div class="card-product-wrapper">
-            <a href="product-detail.html?id=${item.id}" class="product-img">
+            <a href="products.html?id=${item.id}" class="product-img">
               <img class="lazyload img-product" 
-                   data-src="${item.imageUrl || 'images/products/placeholder.jpg'}"
-                   src="${item.imageUrl || 'images/products/placeholder.jpg'}"
+                   data-src="${primaryImage}"
+                   src="${primaryImage}"
                    alt="${item.name}">
               <img class="lazyload img-hover" 
-                   data-src="${item.imageUrl || 'images/products/placeholder.jpg'}"
-                   src="${item.imageUrl || 'images/products/placeholder.jpg'}"
+                   data-src="${hoverImage}"
+                   src="${hoverImage}"
                    alt="${item.name}">
             </a>
             
@@ -501,7 +499,7 @@
                    id: "${item.id}",
                    name: "${item.name.replace(/'/g, "&#39;")}",
                    price: ${Number(item.price || 0)},
-                   imageUrl: "${item.imageUrl || 'images/products/placeholder.jpg'}",
+                   imageUrl: "${primaryImage}",
                    type: "${(item.type || '').replace(/'/g, "&#39;")}"
                  })' 
                  class="box-icon wishlist btn-icon-action">
@@ -522,7 +520,7 @@
                    id: "${item.id}",
                    name: "${item.name.replace(/'/g, "&#39;")}",
                    price: ${Number(item.price || 0)},
-                   imageUrl: "${item.imageUrl || 'images/products/placeholder.jpg'}",
+                   imageUrl: "${primaryImage}",
                    type: "${(item.type || '').replace(/'/g, "&#39;")}"
                  })' 
                  class="btn-main-product">
@@ -532,9 +530,16 @@
           </div>
 
           <div class="card-product-info">
-            <a href="product-detail.html?id=${item.id}" class="title link">${item.name}</a>
+            <a href="products.html?id=${item.id}" class="title link">${item.name}</a>
             ${item.type ? `<span class="text-secondary-2 d-block mb-2">${item.type}</span>` : ''}
             <span class="price current-price">₹${Number(item.price || 0).toFixed(2)}</span>
+            <div class="aplod-image-options" aria-label="Product images">
+              ${imageOptions.map((img, index) => `
+                <button type="button" class="aplod-image-option ${index === 0 ? 'active' : ''}" onclick="switchProductImage(this, '${img}')">
+                  <img src="${img}" alt="${item.name} view ${index + 1}">
+                </button>
+              `).join('')}
+            </div>
           </div>
         `;
 

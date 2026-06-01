@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel - Categories & Products</title>
+  <title>Aplod Admin Panel</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -16,6 +16,7 @@
     .login-wrapper.show { display: flex; }
     .login-box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 40px rgba(30, 102, 211, 0.3); width: 100%; max-width: 400px; }
     .login-logo { text-align: center; margin-bottom: 30px; }
+    .login-logo img { width: 180px; max-width: 100%; margin-bottom: 14px; }
     .login-logo i { font-size: 3rem; color: #253169; margin-bottom: 10px; }
     .login-logo h2 { color: #253169; font-weight: 700; margin: 0; }
     .login-logo p { color: #6c757d; font-size: 0.9rem; margin-top: 5px; }
@@ -35,6 +36,7 @@
     
     .sidebar { width: 250px; background: linear-gradient(135deg, #253169 0%, #1a1f3a 100%); color: white; padding: 30px 20px; position: fixed; height: 100vh; overflow-y: auto; left: 0; top: 0; z-index: 1000; }
     .logo { display: flex; flex-direction: column; align-items: center; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+    .logo img { width: 160px; max-width: 100%; margin-bottom: 10px; background: white; border-radius: 8px; padding: 6px; }
     .logo i { font-size: 2.5rem; margin-bottom: 10px; }
     .logo p { font-size: 1.1rem; font-weight: bold; }
     .nav-link { color: rgba(255,255,255,0.8); text-decoration: none; padding: 12px 15px; border-radius: 8px; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; cursor: pointer; }
@@ -79,8 +81,8 @@
   <div id="loginPage" class="login-wrapper">
     <div class="login-box">
       <div class="login-logo">
-        <i class="fas fa-layer-group"></i>
-        <h2>Packup - Admin Panel</h2>
+        <img src="images/logo/aplod-logo.svg" alt="Aplod">
+        <h2>Aplod - Admin Panel</h2>
         <p>Sign in to continue</p>
       </div>
       <div id="loginError" class="login-error">
@@ -107,7 +109,7 @@
   <div class="dashboard-wrapper" id="dashboardPage">
     <div class="sidebar">
       <div class="logo">
-        <i class="fas fa-layer-group"></i>
+        <img src="images/logo/aplod-logo.svg" alt="Aplod">
         <p>Admin Panel</p>
       </div>
       <nav class="nav">
@@ -520,24 +522,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-  import { 
-    getDatabase, ref, onValue, push, update, remove 
-  } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
-  import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+  import {
+    initializeApp, getDatabase, ref, ref as sRef, onValue, push, update, remove,
+    getStorage, uploadBytes, getDownloadURL, getAuth,
+    signInWithEmailAndPassword, onAuthStateChanged, signOut
+  } from "./js/local-store.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDfB0pwHCxzPHzeyPa0GvLOS-gQg0CaDA4",
-    authDomain: "packup-4223f.firebaseapp.com",
-    databaseURL: "https://packup-4223f-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "packup-4223f",
-    storageBucket: "packup-4223f.firebasestorage.app",
-    messagingSenderId: "747632150416",
-    appId: "1:747632150416:web:69458ee5ad3ab5b27cd515"
-  };
-
-  const app = initializeApp(firebaseConfig);
+  const app = initializeApp();
   const db = getDatabase(app);
   const storage = getStorage(app);
   const auth = getAuth(app);
@@ -1001,7 +992,7 @@
           ${order.items.map(item => `
             <tr>
               <td>
-                <img src="${item.imageUrl || 'images/products/placeholder.jpg'}" 
+                <img src="${item.imageUrl || 'images/Screenshot 2026-05-19 182848.png'}" 
                      style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" 
                      class="me-2">
                 ${item.name}

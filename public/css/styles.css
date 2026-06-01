@@ -1,6 +1,6 @@
 @charset "UTF-8";
 /* ---------------------------------------------------------
-    * Name: Modave - Multipurpose eCommerce
+ * Name: Aplod - Mobile Cover Store
     * Version: 1.0.2
     * Author: Themesflat
     * Author URI: http://themesflat.com 
@@ -12682,7 +12682,7 @@ ul.breadcrumbs i {
 }
 .blog-detail-wrap > .image {
   height: 568px;
-  background-image: url(../images/blog/blog-details-1.jpg);
+  background-image: url(../images/Web-Banner.jpg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -13715,7 +13715,7 @@ ul.list-text.type-number {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  background-image: url(../images/section/coming-soon.jpg);
+  background-image: url(../images/Web-Banner.jpg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -14264,7 +14264,7 @@ ul.list-text.type-number {
 }
 
 .section-pet-store {
-  background-image: url(../images/section/bg-1.png);
+  background-image: url(../images/Web-Banner.jpg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -14325,7 +14325,7 @@ ul.list-text.type-number {
 }
 
 .section-flash-sale {
-  background-image: url(../images/section/bg-2.png);
+  background-image: url(../images/Web-Banner.jpg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -18158,4 +18158,126 @@ ul.list-text.type-number {
 .tf-slideshow .slider-group img {
     width: 100% !important;
 }
+}
+.aplod-image-options {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.aplod-image-option {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid #e0e0e0;
+  background: #fff;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.aplod-image-option.active {
+  border-color: #253169;
+  box-shadow: 0 0 0 2px rgba(37, 49, 105, 0.12);
+}
+
+.aplod-image-option img,
+.aplod-image-option video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.product-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+.aplod-collection-showcase .heading-section {
+  margin-bottom: 30px;
+}
+
+.aplod-collection-showcase .flat-collection-circle {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.aplod-collection-showcase .tf-sw-collection {
+  overflow: visible;
+}
+
+.aplod-collection-showcase .swiper-wrapper {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  transform: none !important;
+}
+
+.aplod-collection-showcase .swiper-slide {
+  width: auto !important;
+  margin-right: 0 !important;
+}
+
+.aplod-collection-card {
+  height: 100%;
+  padding: 12px;
+  border: 1px solid #e7e7e7;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(17, 17, 17, 0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.aplod-collection-card:hover {
+  transform: translateY(-4px);
+  border-color: #cfcfcf;
+  box-shadow: 0 16px 36px rgba(17, 17, 17, 0.1);
+}
+
+.aplod-collection-card .img-style {
+  height: 330px;
+  border-radius: 8px !important;
+  background: #f7f7f7;
+}
+
+.aplod-collection-card .img-style img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.aplod-collection-card .collection-content {
+  margin-top: 14px;
+  padding: 4px 4px 2px;
+}
+
+.aplod-collection-card .collection-content .cls-title {
+  gap: 6px;
+}
+
+.aplod-collection-card .collection-content .cls-title .text {
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.aplod-collection-card .collection-content p {
+  margin: 8px auto 0;
+  max-width: 320px;
+  color: #666;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+@media (max-width: 767px) {
+  .aplod-collection-showcase .swiper-wrapper {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .aplod-collection-card .img-style {
+    height: 260px;
+  }
 }

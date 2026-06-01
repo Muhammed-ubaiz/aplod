@@ -1272,9 +1272,14 @@
         $(window).on("scroll", function () {
             var scrollPosition = $(this).scrollTop();
             var myElement = $(".tf-sticky-btn-atc");
+            var productInfo = $(".tf-product-info-by-btn");
+
+            if (!productInfo.length) {
+                return;
+            }
 
             // .tf-product-info-by-btn.offset().top
-            var height = $(".tf-product-info-by-btn").offset().top + 50;
+            var height = productInfo.offset().top + 50;
             // console.log(height);
 
             if (scrollPosition >= height) {

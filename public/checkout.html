@@ -3,13 +3,13 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>Checkout | PackUp</title>
+	<title>Checkout | Aplod</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 	<link rel="stylesheet" href="fonts/fonts.css">
 	<link rel="stylesheet" href="fonts/font-icons.css">
 	<link rel="stylesheet" href="css/bootstrap.min.css">
 	<link rel="stylesheet" href="css/styles.css">
-	<link rel="shortcut icon" href="images/logo/PACKUP-LOGO-2.png">
+	<link rel="shortcut icon" href="images/logo/aplod-mark.svg">
 	<style>
 		.checkout-container {
 			max-width: 1200px;
@@ -174,7 +174,7 @@
 			<div class="row align-items-center">
 				<div class="col-6">
 					<a href="index.html">
-						<img src="images/logo/PACKUP-LOGO-1.png" alt="PackUp" style="height: 50px;">
+						<img src="images/logo/aplod-logo.svg" alt="Aplod" style="height: 50px;">
 					</a>
 				</div>
 				<div class="col-6 text-end">
@@ -310,20 +310,9 @@
 	<script src="js/jquery.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
 	<script type="module">
-		import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-		import { getDatabase, ref, get, set, push, remove } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+		import { initializeApp, getDatabase, ref, get, set, push, remove } from "./js/local-store.js";
 
-		const firebaseConfig = {
-			apiKey: "AIzaSyDfB0pwHCxzPHzeyPa0GvLOS-gQg0CaDA4",
-			authDomain: "packup-4223f.firebaseapp.com",
-			databaseURL: "https://packup-4223f-default-rtdb.asia-southeast1.firebasedatabase.app",
-			projectId: "packup-4223f",
-			storageBucket: "packup-4223f.firebasestorage.app",
-			messagingSenderId: "747632150416",
-			appId: "1:747632150416:web:69458ee5ad3ab5b27cd515"
-		};
-
-		const app = initializeApp(firebaseConfig);
+		const app = initializeApp();
 		const db = getDatabase(app);
 
 		let cartId = localStorage.getItem('cartSessionId');
@@ -362,7 +351,7 @@
 
 				return `
                     <div class="order-item">
-                        <img src="${item.imageUrl || 'images/products/placeholder.jpg'}" alt="${item.name}">
+                        <img src="${item.imageUrl || 'images/Screenshot 2026-05-19 182848.png'}" alt="${item.name}">
                         <div class="flex-grow-1">
                             <h6 class="mb-1">${item.name}</h6>
                             ${item.type ? `<small class="text-muted">${item.type}</small><br>` : ''}
@@ -422,7 +411,7 @@
 			document.getElementById('loadingOverlay').classList.add('show');
 
 			try {
-				// Save order to Firebase
+				// Save order locally
 				await push(ref(db, 'orders'), orderData);
 
 				// Clear cart

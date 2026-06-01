@@ -1,34 +1,7 @@
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { 
-        getDatabase, 
-        ref, 
-        onValue, 
-        push, 
-        update, 
-        remove,
-        get,      // ← needed for reading the cart
-        set       // ← needed for writing the whole cart
-    } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
-    import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
+import { initializeApp, getDatabase, ref, onValue, push, update, remove, get, set } from "./local-store.js";
 
-
-
-
-    // Initialize Firebase (one instance for all features)
-    const firebaseConfig = {
-        apiKey: "AIzaSyDfB0pwHCxzPHzeyPa0GvLOS-gQg0CaDA4",
-        authDomain: "packup-4223f.firebaseapp.com",
-        databaseURL: "https://packup-4223f-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "packup-4223f",
-        storageBucket: "packup-4223f.firebasestorage.app",
-        messagingSenderId: "747632150416",
-        appId: "1:747632150416:web:69458ee5ad3ab5b27cd515"
-    };
-
-   
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const storage = getStorage(app);
+const app = initializeApp();
+const db = getDatabase(app);
 
     // Helper: Re-init Swiper after dynamic content
     function updateSwiper(swiperClass) {
@@ -70,23 +43,29 @@ if (collectionWrapper) {
             }
 
             categories.forEach(cat => {
+                const catName = String(cat.name || '').toLowerCase();
+                const categoryLink = catName.includes('screen') || catName.includes('glass')
+                    ? 'screen-glass.html'
+                    : catName.includes('case')
+                        ? 'cases.html'
+                        : `products.html?category=${encodeURIComponent(cat.name)}`;
                 const slide = document.createElement('div');
                 slide.className = 'swiper-slide';
                 slide.innerHTML = `
-                    <div class="collection-circle hover-img">
-                        <a href="products.html?category=${encodeURIComponent(cat.name)}" class="img-style radius-12">
+                    <div class="collection-circle hover-img aplod-collection-card">
+                        <a href="${categoryLink}" class="img-style radius-12">
                             <img class="lazyload" 
                                  data-src="${cat.imageUrl || 'images/collections/placeholder.jpg'}"
                                  src="${cat.imageUrl || 'images/collections/placeholder.jpg'}" 
-                                 alt="${cat.name}" 
-                                 style="height: 260px; object-fit: cover; width: 100%;">
+                                 alt="${cat.name}">
                         </a>
                         <div class="collection-content text-center">
                             <div>
-                                <a href="products.html?category=${encodeURIComponent(cat.name)}" class="cls-title">
+                                <a href="${categoryLink}" class="cls-title">
                                     <h6 class="text">${cat.name}</h6>
                                     <i class="icon icon-arrowUpRight"></i>
                                 </a>
+                                <p>${cat.description || 'Shop now'}</p>
                             </div>
                         </div>
                     </div>
@@ -122,7 +101,7 @@ if (collectionWrapper) {
                     item.className = 'col-md-4 col-sm-6 mb-4';
                     item.innerHTML = `
                         <div class="product-card hover-img">
-                            <a href="product-detail.html?id=${p.id || ''}">
+                            <a href="products.html?id=${p.id || ''}">
                                 <img src="${p.imageUrl || 'images/products/placeholder.jpg'}" 
                                      alt="${p.name}" class="img-fluid rounded">
                             </a>
@@ -256,6 +235,11 @@ if (collectionWrapper) {
             const bestsellers = Object.values(snapshot.val());
 
             bestsellers.forEach(item => {
+                const primaryImage = item.imageUrl || 'images/products/placeholder.jpg';
+                const hoverImage = item.hoverImageUrl || item.insideImageUrl || primaryImage;
+                const insideImage = item.insideImageUrl || hoverImage;
+                const imageOptions = [...new Set(item.imageUrls || [primaryImage, hoverImage, insideImage])];
+                const videoUrl = item.videoUrl || '';
                 const productCard = document.createElement('div');
                 productCard.className = 'card-product wow fadeInUp';
                 productCard.setAttribute('data-wow-delay', '0s');
@@ -264,20 +248,21 @@ if (collectionWrapper) {
     <div class="card-product-wrapper">
         <a href="products.html" class="product-img">
             <img class="lazyload img-product" 
-                 data-src="${item.imageUrl || 'images/products/placeholder.jpg'}"
-                 src="${item.imageUrl || 'images/products/placeholder.jpg'}"
+                 data-src="${primaryImage}"
+                 src="${primaryImage}"
                  alt="${item.name}">
             <img class="lazyload img-hover" 
-                 data-src="${item.imageUrl || 'images/products/placeholder.jpg'}"
-                 src="${item.imageUrl || 'images/products/placeholder.jpg'}"
+                 data-src="${hoverImage}"
+                 src="${hoverImage}"
                  alt="${item.name}">
+            ${videoUrl ? `<video class="product-video" src="${videoUrl}" muted loop playsinline controls></video>` : ''}
         </a>
         <div class="list-btn-main">
             <a href="javascript:void(0)" class="btn-main-product" 
                onclick='addToCart({
                    name: "${item.name.replace(/'/g, "&#39;")}",
                    price: ${Number(item.price || 0)},
-                   imageUrl: "${item.imageUrl || 'images/products/placeholder.jpg'}",
+                   imageUrl: "${primaryImage}",
                    type: "${(item.type || '').replace(/'/g, "&#39;")}"
                })'>
                Add To Cart
@@ -285,9 +270,21 @@ if (collectionWrapper) {
         </div>
     </div>
     <div class="card-product-info">
-        <a href="product-detail.html" class="title link">${item.name}</a>
+        <a href="products.html" class="title link">${item.name}</a>
         ${item.type ? `<span class="text-secondary-2 d-block mb-0">${item.type}</span>` : ''}
-        <span class="price">$${Number(item.price || 0).toFixed(2)}</span>
+        <span class="price">₹${Number(item.price || 0).toFixed(2)}</span>
+        <div class="aplod-image-options" aria-label="Product images">
+            ${imageOptions.map((img, index) => `
+                <button type="button" class="aplod-image-option ${index === 0 ? 'active' : ''}" onclick="switchProductMedia(this, 'image', '${img}')">
+                    <img src="${img}" alt="${item.name} view ${index + 1}">
+                </button>
+            `).join('')}
+            ${videoUrl ? `
+                <button type="button" class="aplod-image-option" onclick="switchProductMedia(this, 'video', '${videoUrl}')">
+                    <video src="${videoUrl}" muted playsinline></video>
+                </button>
+            ` : ''}
+        </div>
     </div>
 `;
 
@@ -334,12 +331,28 @@ if (collectionWrapper) {
     }
 
     // Add to Cart Function (call from Add to Cart buttons)
+    function isScreenGlassProduct(product) {
+        const text = `${product.name || ''} ${product.type || ''}`.toLowerCase();
+        return text.includes('screen') || text.includes('glass') || text.includes('guard') || text.includes('tempered') || text.includes('card');
+    }
+
     window.addToCart = async (product) => {
         try {
+            if (isScreenGlassProduct(product) && !product.phoneModel) {
+                const phoneModel = window.prompt("Enter phone model");
+                if (!phoneModel || !phoneModel.trim()) {
+                    alert("Please enter phone model for Screen Glass.");
+                    return;
+                }
+                product.phoneModel = phoneModel.trim();
+            }
+
             const snapshot = await get(userCartRef);
             const currentCart = snapshot.val() || {};
 
-            const productId = product.id || Date.now().toString();
+            const productId = product.phoneModel
+                ? `${product.id || product.name}_${product.phoneModel}`.replace(/\s+/g, "_").toLowerCase()
+                : product.id || Date.now().toString();
             if (currentCart[productId]) {
                 // Increase quantity
                 currentCart[productId].quantity += 1;
@@ -351,6 +364,7 @@ if (collectionWrapper) {
                     price: product.price,
                     imageUrl: product.imageUrl,
                     type: product.type || '',
+                    phoneModel: product.phoneModel || '',
                     quantity: 1
                 };
             }
@@ -405,14 +419,17 @@ if (collectionWrapper) {
                 <div class="tf-mini-cart-info flex-grow-1">
                     <div class="mb_12 d-flex align-items-center justify-content-between flex-wrap gap-12">
                         <div class="text-title">
-                            <a href="product-detail.html" class="link text-line-clamp-1">${item.name}</a>
+                            <a href="products.html" class="link text-line-clamp-1">${item.name}</a>
                         </div>
                         <div class="text-button tf-btn-remove remove" onclick="removeFromCart('${item.id}')">
                             Remove
                         </div>
                     </div>
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-12">
-                        ${item.type ? `<div class="text-secondary-2">${item.type}</div>` : '<div></div>'}
+                        <div class="text-secondary-2">
+                            ${item.type || ''}
+                            ${item.phoneModel ? `<div>Phone: ${item.phoneModel}</div>` : ''}
+                        </div>
                         <div class="text-button">${item.quantity} × ₹${Number(item.price).toFixed(2)}</div>
                     </div>
                 </div>
