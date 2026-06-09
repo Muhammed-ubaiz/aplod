@@ -281,7 +281,7 @@
 							</div>
 
 							<button type="button" class="btn-checkout mt-4" onclick="submitOrder()">
-								<i class="fas fa-lock me-2"></i> Place Order
+								<i class="fas fa-lock me-2"></i> Place Order on WhatsApp
 							</button>
 						</div>
 					</div>
@@ -293,7 +293,7 @@
 		<div id="successMessage" class="success-message checkout-section">
 			<i class="fas fa-check-circle"></i>
 			<h2>Order Placed Successfully!</h2>
-			<p class="mt-3">Thank you for your order. We'll send you a confirmation email shortly.</p>
+			<p class="mt-3">Thank you for your order. Your order details are ready to send on WhatsApp.</p>
 			<p>Order ID: <strong id="displayOrderId"></strong></p>
 			<a href="index.html" class="btn btn-primary mt-4">Continue Shopping</a>
 		</div>
@@ -323,8 +323,7 @@
 		// Load cart on page load
 		async function loadCart() {
 			if (!cartId) {
-				document.getElementById('emptyCart').style.display = 'block';
-				document.getElementById('checkoutForm').style.display = 'none';
+				window.location.href = 'index.html';
 				return;
 			}
 
@@ -332,8 +331,7 @@
 			const snapshot = await get(cartRef);
 
 			if (!snapshot.exists() || Object.keys(snapshot.val()).length === 0) {
-				document.getElementById('emptyCart').style.display = 'block';
-				document.getElementById('checkoutForm').style.display = 'none';
+				window.location.href = 'index.html';
 				return;
 			}
 
@@ -372,6 +370,47 @@
 			document.getElementById('shipping').textContent = subtotal > 500 ? 'Free' : `₹${shippingCost.toFixed(2)}`;
 			document.getElementById('tax').textContent = `₹${tax.toFixed(2)}`;
 			document.getElementById('grandTotal').textContent = `₹${(subtotal > 500 ? subtotal : grandTotal).toFixed(2)}`;
+		}
+
+		function buildWhatsAppMessage(orderData) {
+			const customer = orderData.customerInfo;
+			const itemLines = orderData.items.map((item, index) => {
+				const itemTotal = Number(item.price || 0) * Number(item.quantity || 1);
+				const details = [
+					`${index + 1}. ${item.name}`,
+					item.type ? `Type: ${item.type}` : '',
+					item.phoneModel ? `Phone Model: ${item.phoneModel}` : '',
+					`Qty: ${item.quantity || 1}`,
+					`Price: ₹${Number(item.price || 0).toFixed(2)}`,
+					`Total: ₹${itemTotal.toFixed(2)}`
+				].filter(Boolean);
+
+				return details.join('\n');
+			}).join('\n\n');
+
+			return [
+				'New Aplod Order',
+				`Order ID: ${orderData.orderId}`,
+				'',
+				'Customer Details',
+				`Name: ${customer.firstName} ${customer.lastName}`,
+				`Phone: ${customer.phone}`,
+				`Email: ${customer.email}`,
+				`Address: ${customer.address}`,
+				`City: ${customer.city}`,
+				`State: ${customer.state}`,
+				`Pin Code: ${customer.pincode}`,
+				`Country: ${customer.country}`,
+				'',
+				'Items',
+				itemLines,
+				'',
+				'Payment Summary',
+				`Subtotal: ₹${orderData.subtotal.toFixed(2)}`,
+				`Shipping: ${orderData.shipping === 0 ? 'Free' : `₹${orderData.shipping.toFixed(2)}`}`,
+				`Total: ₹${orderData.total.toFixed(2)}`,
+				orderData.orderNotes ? `\nOrder Notes: ${orderData.orderNotes}` : ''
+			].filter(Boolean).join('\n');
 		}
 
 		// Submit Order Function
@@ -414,6 +453,10 @@
 				// Save order locally
 				await push(ref(db, 'orders'), orderData);
 
+				const whatsappNumber = '917034296606';
+				const whatsappMessage = encodeURIComponent(buildWhatsAppMessage(orderData));
+				const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
+
 				// Clear cart
 				await set(ref(db, `carts/${cartId}`), null);
 				localStorage.removeItem('cartSessionId');
@@ -425,6 +468,8 @@
 				document.getElementById('checkoutForm').style.display = 'none';
 				document.getElementById('successMessage').classList.add('show');
 				document.getElementById('displayOrderId').textContent = orderData.orderId;
+
+				window.location.href = whatsappUrl;
 
 				// Scroll to top
 				window.scrollTo({ top: 0, behavior: 'smooth' });
